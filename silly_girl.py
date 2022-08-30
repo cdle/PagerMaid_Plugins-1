@@ -1,4 +1,4 @@
-from asyncio import sleep
+from time import sleep
 from pagermaid.listener import listener
 from pagermaid import persistent_vars, bot
 from pagermaid.utils import client, alias_command
@@ -52,7 +52,7 @@ async def sillyGirl(context):
     persistent_vars["sillyGirl"]['self_user_id'] = myself.id
     if persistent_vars["sillyGirl"]['started'] == False:
         persistent_vars["sillyGirl"]['started'] = True
-        while(persistent_vars["sillyGirl"]['restart']==False):
+        while(context.client._user_connected()):
             await poll([])
 
 @listener(is_plugin=True, outgoing=True, incoming=True)
@@ -63,8 +63,6 @@ async def handle_receive(context):
     reply_to = context.id
     reply = await context.get_reply_message()
     reply_to_sender_id = 0
-    if context.text == "-restart" and persistent_vars["sillyGirl"]['self_user_id'] == context.sender_id:
-        persistent_vars["sillyGirl"]['restart'] = True
     if reply:
         reply_to = reply.id
         reply_to_sender_id = reply.sender_id
@@ -89,10 +87,10 @@ async def poll(data):
             init = "&init=true"
         req_data = await client.post(persistent_vars["sillyGirl"]['url']+"/pgm?token="+persistent_vars["sillyGirl"]['token']+init, json=data)
     except Exception as e:
-        await sleep(1)
+        sleep(1)
         return
     if not req_data.status_code == 200:
-        await sleep(1)
+        sleep(1)
         return
     try:
         replies = json.loads(req_data.text)
@@ -140,5 +138,5 @@ async def poll(data):
             await persistent_vars["sillyGirl"]['context'].edit("傻妞连接成功，愉快玩耍吧。")
             await persistent_vars["sillyGirl"]['context'].delete()
     except Exception as e:
-        await sleep(1)
+        sleep(1)
         return
